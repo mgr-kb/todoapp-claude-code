@@ -82,10 +82,37 @@ interface Todo {
 - ユーザー別データ分離
 
 ## 開発時の注意点
+
+### 共通
 - TypeScriptの型安全性を重視
 - shadcn/uiコンポーネントの活用
 - エラーハンドリングの適切な実装
 - パフォーマンスを考慮した実装
+
+### TDDの実施
+TDD を実施する。コードを生成するときは、それに対応するユニットテストを常に生成する。
+コードを追加で修正したとき、`npm test` がパスすることを常に確認する。
+
+```ts
+function add(a: number, b: number) { return a + b }
+test("1+2=3", () => {
+  expect(add(1, 2)).toBe(3);
+});
+```
+
+### Unit Testing
+vitest で実装と同じファイルにユニットテストを書く。
+出力例
+```ts
+export function distance(a: Point, b: Point): number {...}
+if (import.meta.vitest) {
+  const {test, expect} = import.meta.vitest;
+  test("ユークリッド距離を計算する", () => {
+    const result = distance({x: 0, y: 0}, {x: 3, y: 4});
+    expect(distance(result)).toBe(5)
+  });
+}
+```
 
 
 ## タスク着手時のワークフロー
