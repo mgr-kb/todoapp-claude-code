@@ -111,7 +111,9 @@ interface Todo {
 
 ### コーディングスタイル
 
-`~/.claude`ディレクトリにある言語やライブラリごとのルールをを参照する。
+- `~/.claude`ディレクトリにある言語やライブラリごとのルールをを参照する。
+- Next.js/Reactに関するルールは `~/.cluade/nextjs.md`を参照する。
+- TypeScriptに関するルールは `~/.claude/typescript.md`を参照する。
 
 ## タスク管理
 

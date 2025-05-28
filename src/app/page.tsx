@@ -1,11 +1,13 @@
 import { AuthWrapper } from '@/components/AuthWrapper';
 import { TodoPage } from '@/components/TodoPage';
-import { mockTodos } from '@/lib/mockData';
+import { fetchTodos } from './fetcher';
 
-export default function Home() {
+export default async function Home() {
+  const todosData = await fetchTodos();
+  
   return (
     <AuthWrapper>
-      <TodoPage initialTodos={mockTodos} />
+      <TodoPage todosData={todosData} />
     </AuthWrapper>
   );
 }
