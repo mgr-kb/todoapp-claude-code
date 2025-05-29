@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { TodoList } from '@/components/TodoList';
+import { TodoCreateForm } from '@/components/TodoCreateForm';
 import { Todo, PaginatedTodos } from '@/types/todo';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -11,10 +13,17 @@ interface TodoPageProps {
 }
 
 export function TodoPage({ todosData }: TodoPageProps) {
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { todos, totalCount, totalPages, currentPage } = todosData;
 
   const handleToggleComplete = async (id: string) => {
-    await toggleTodoAction(id);
+    try {
+      setError(null);
+      await toggleTodoAction(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle todo');
+    }
   };
 
   const handleEdit = (id: string) => {
@@ -25,8 +34,17 @@ export function TodoPage({ todosData }: TodoPageProps) {
   const handleDelete = async (id: string) => {
     // TODO: 削除確認ダイアログを実装
     if (confirm('このTODOを削除しますか？')) {
-      await deleteTodoAction(id);
+      try {
+        setError(null);
+        await deleteTodoAction(id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete todo');
+      }
     }
+  };
+
+  const handleCreateSuccess = () => {
+    setError(null);
   };
 
   return (
@@ -45,7 +63,7 @@ export function TodoPage({ todosData }: TodoPageProps) {
               )}
             </p>
           </div>
-          <Button onClick={() => console.log('Add new todo')} className="gap-2">
+          <Button onClick={() => setIsCreateFormOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             新しいTODO
           </Button>
@@ -83,6 +101,20 @@ export function TodoPage({ todosData }: TodoPageProps) {
         {totalPages > 1 && (
           <div className="mt-8 text-center text-sm text-muted-foreground">
             ページ {currentPage} / {totalPages} （全 {totalCount} 件）
+          </div>
+        )}
+
+        {/* TODO作成フォーム */}
+        <TodoCreateForm
+          open={isCreateFormOpen}
+          onOpenChange={setIsCreateFormOpen}
+          onSuccess={handleCreateSuccess}
+        />
+
+        {/* エラー表示 */}
+        {error && (
+          <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
           </div>
         )}
       </div>
