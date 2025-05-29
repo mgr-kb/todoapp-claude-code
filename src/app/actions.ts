@@ -4,38 +4,55 @@ import { auth } from '@clerk/nextjs/server';
 import { TodoServiceFacade } from '@/lib/services/TodoServiceFacade';
 import { TodoCreateInput, TodoUpdateInput } from '@/types/todo';
 import { revalidatePath } from 'next/cache';
+import { parseWithZod } from '@conform-to/zod';
+import { todoCreateSchema } from '@/lib/schemas/todoCreateSchema';
+import { TodoCreateActionResult } from '@/lib/types/actionResults';
 
-export async function createTodoAction(formData: FormData) {
+export async function createTodoAction(
+  _prevState: unknown, 
+  formData: FormData
+): Promise<TodoCreateActionResult> {
   const { userId } = await auth();
   
   if (!userId) {
-    throw new Error('Unauthorized: User not authenticated');
+    return {
+      status: 'error',
+      error: { form: ['Unauthorized: User not authenticated'] }
+    };
   }
 
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const dueDate = formData.get('dueDate') as string;
-  const priority = parseInt(formData.get('priority') as string) as 1 | 2 | 3;
+  const submission = parseWithZod(formData, { schema: todoCreateSchema });
 
-  if (!title || !description || !dueDate || !priority) {
-    throw new Error('All fields are required');
+  if (submission.status !== 'success') {
+    return {
+      status: 'validation-error',
+      error: submission.error,
+    };
   }
 
   const todoData: TodoCreateInput = {
-    title,
-    description,
-    dueDate,
-    priority,
+    title: submission.value.title,
+    description: submission.value.description,
+    dueDate: submission.value.dueDate,
+    priority: submission.value.priority,
   };
 
   try {
     const todoService = new TodoServiceFacade();
     await todoService.createUserIfNotExists(userId);
-    await todoService.createTodo(userId, todoData);
+    const newTodo = await todoService.createTodo(userId, todoData);
     revalidatePath('/');
+    
+    return {
+      status: 'success',
+      data: newTodo
+    };
   } catch (error) {
     console.error('Error creating todo:', error);
-    throw new Error('Failed to create todo');
+    return {
+      status: 'error',
+      error: { form: ['Failed to create todo'] }
+    };
   }
 }
 
