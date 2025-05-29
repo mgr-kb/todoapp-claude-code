@@ -118,7 +118,7 @@ export class TodoBusinessLogic {
 
   private isValidDate(dateString: string): boolean {
     const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date.getTime()) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+    return date instanceof Date && !isNaN(date.getTime()) && Boolean(dateString.match(/^\d{4}-\d{2}-\d{2}$/));
   }
 
   private isValidPriority(priority: number): boolean {
