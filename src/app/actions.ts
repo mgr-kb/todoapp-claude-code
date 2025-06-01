@@ -94,19 +94,29 @@ export async function deleteTodoAction(id: string) {
   const { userId } = await auth();
   
   if (!userId) {
-    throw new Error('Unauthorized: User not authenticated');
+    return {
+      status: 'error' as const,
+      error: { form: ['Unauthorized: User not authenticated'] }
+    };
   }
 
   try {
     const todoService = new TodoServiceFacade();
     const result = await todoService.deleteTodo(userId, id);
     if (!result) {
-      throw new Error('Todo not found');
+      return {
+        status: 'error' as const,
+        error: { form: ['Todo not found'] }
+      };
     }
     revalidatePath('/');
+    return { status: 'success' as const };
   } catch (error) {
     console.error('Error deleting todo:', error);
-    throw new Error('Failed to delete todo');
+    return {
+      status: 'error' as const,
+      error: { form: ['Failed to delete todo'] }
+    };
   }
 }
 
@@ -114,18 +124,50 @@ export async function toggleTodoAction(id: string) {
   const { userId } = await auth();
   
   if (!userId) {
-    throw new Error('Unauthorized: User not authenticated');
+    return {
+      status: 'error' as const,
+      error: { form: ['Unauthorized: User not authenticated'] }
+    };
   }
 
   try {
     const todoService = new TodoServiceFacade();
     const result = await todoService.toggleTodoCompletion(userId, id);
     if (!result) {
-      throw new Error('Todo not found');
+      return {
+        status: 'error' as const,
+        error: { form: ['Todo not found'] }
+      };
     }
     revalidatePath('/');
+    return { status: 'success' as const };
   } catch (error) {
     console.error('Error toggling todo:', error);
-    throw new Error('Failed to toggle todo');
+    return {
+      status: 'error' as const,
+      error: { form: ['Failed to toggle todo'] }
+    };
+  }
+}
+
+export async function getTodosAction() {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    return [];
+  }
+
+  try {
+    const todoService = new TodoServiceFacade();
+    await todoService.createUserIfNotExists(userId);
+    const result = await todoService.getTodos(
+      userId, 
+      { sortBy: 'dueDate', sortOrder: 'asc' },
+      { page: 1, limit: 10 }
+    );
+    return result.todos;
+  } catch (error) {
+    console.error('Error fetching todos:', error);
+    return [];
   }
 }

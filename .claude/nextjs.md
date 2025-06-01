@@ -1,5 +1,78 @@
 # Next.js (App Router)
 
+## コア原則
+- App Routerを採用
+- TypeScript必須 (ESLint / Typeエラーは常にない状態とする)
+- API Routesは採用しない。サーバー処理が必要になる場合、Server Actionsを使用する
+
+## ディレクトリ構造
+
+src/app/         ルーティング & ページ
+src/components/  汎用 UI（再利用可能・ロジックなし）
+src/lib/         ユーティリティ関数
+src/hooks/       カスタムフック
+src/types/       型定義
+src/constants/   定数
+src/config/      設定値・環境変数ラッパー
+src/services/    外部 API ラッパーやビジネスロジック
+src/demo/        フロントエンドから実行できる手動テストページ
+
+	•	専用（機能固有）コンポーネント … 対応する src/app/**/page.tsx と同階層に、`_components`ディレクトリ配置して、その中で管理する
+	•	汎用（再利用可能）コンポーネント … src/components/ に配置
+
+## データハンドリング
+
+  依存条件	実装方法
+ユーザー操作に依存しない	server components + Server Actions
+ユーザー操作に依存する	client components + Server Actions + useSWR
+
+	•	更新は Server Actions、即時反映は useSWR.mutate で楽観的更新
+	•	Supabase は RLS + auth.uid() を利用し、user.id 明示は不要
+
+## 表示と状態管理
+•	UI は極力自作せず、必ず shadcn/ui のコンポーネントを利用
+•	アイコンは lucide-react を統一使用
+•	URL 状態は nuqs に統一
+•	グローバル状態ライブラリは 使用しない（必要時は React Context + useReducer などで最小構成）
+
+## パフォーマンス
+	•	use client / useEffect / useState は最小限、まず RSCを利用する
+	•	クライアント側は Suspense でフォールバック
+	•	動的 import で遅延読み込み、画像は next/image、リンクは next/link
+	•	ルートベースのコード分割を徹底
+
+## フォームとバリデーション
+	•	制御コンポーネント + conform
+	•	スキーマ検証は Zod
+	•	クライアント／サーバー両方で入力チェック
+
+## 品質・セキュリティ・テスト
+
+### エラーハンドリング
+	•	ガード節で 早期 return、成功パスは最後にまとめる
+
+### アクセシビリティ
+	•	セマンティック HTML + ARIA、キーボード操作サポート
+
+### Server Actions のセキュリティ指針
+	•	ユーザーが許可された操作だけを Server Action として実装
+	•	汎用的・多目的なサーバー関数は実装しない
+	•	RLS と auth.uid() により 最小権限 を担保
+
+### テスト
+	•	demo/ ディレクトリ に UI ベースのテストページを配置し、
+すべての Server Actions・クライアント関数を ブラウザ経由で手動検証 できるようにする
+
+⸻
+
+## 実装フロー
+	1.	設計：コア原則とディレクトリ決定
+	2.	データ：取得（useSWR）・更新（Server Actions＋mutate）ルール確立
+	3.	UI / State：shadcn/ui と lucide-react を使い、URL 状態は nuqs
+	4.	パフォーマンス：RSC・Suspense・dynamic import で最適化
+	5.	フォーム & バリデーション：Zod × conform
+	6.	品質管理：エラー処理 → アクセシビリティ → 専用 Server Actions → demo/ で手動テスト
+
 ## データフェッチ
 
 Server Componentsによるデータフェッチを行う。
@@ -79,11 +152,3 @@ export function Page() {
   );
 }
 ```
-
-## フォームについて
-
-TODO
-
-## 状態管理について
-
-TODO

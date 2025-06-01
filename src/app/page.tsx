@@ -1,5 +1,5 @@
 import { AuthWrapper } from '@/components/AuthWrapper';
-import { TodoPage } from '@/components/TodoPage';
+import { TodoPage } from './_components/TodoPage';
 import { fetchTodos } from './fetcher';
 
 export default async function Home() {
