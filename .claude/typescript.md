@@ -57,15 +57,6 @@ test("1+2=3", () => {
 ```
 
 ## Unit Testing
-vitest で実装と同じファイルにユニットテストを書く。
-出力例
-```ts
-export function distance(a: Point, b: Point): number {...}
-if (import.meta.vitest) {
-  const {test, expect} = import.meta.vitest;
-  test("ユークリッド距離を計算する", () => {
-    const result = distance({x: 0, y: 0}, {x: 3, y: 4});
-    expect(distance(result)).toBe(5)
-  });
-}
-```
+
+vitestでユニットテストを書く。
+テストファイルは、実装コードと同階層に `{実装ファイル名}.test.{実装ファイルと同一の拡張子}` のようなファイル名で配置する。
