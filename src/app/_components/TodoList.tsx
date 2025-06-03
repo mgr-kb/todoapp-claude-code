@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Plus } from 'lucide-react';
 import { Todo } from '@/types/todo';
-import { toggleTodoAction, deleteTodoAction, getTodosAction } from '@/app/actions';
+import { getTodosAction } from '@/app/actions';
 import { TodoCreateForm } from './TodoCreateForm';
+import { useTodoMutations } from './hooks/useTodoMutations';
 import useSWR from 'swr';
 
 interface TodoListProps {
@@ -16,7 +17,6 @@ interface TodoListProps {
 }
 
 export function TodoList({ initialTodos }: TodoListProps) {
-  const [isPending, startTransition] = useTransition();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   const { data: todos = initialTodos, mutate } = useSWR<Todo[]>(
@@ -28,35 +28,10 @@ export function TodoList({ initialTodos }: TodoListProps) {
     }
   );
 
-  const handleToggle = async (todo: Todo) => {
-    // Optimistic update
-    const optimisticTodos = todos.map(t => 
-      t.id === todo.id ? { ...t, completed: !t.completed } : t
-    );
-    
-    await mutate(optimisticTodos, false);
-    
-    startTransition(async () => {
-      const result = await toggleTodoAction(todo.id);
-      if (result.status === 'success') {
-        mutate();
-      }
-    });
-  };
-
-  const handleDelete = async (id: string) => {
-    // Optimistic update
-    const optimisticTodos = todos.filter(t => t.id !== id);
-    
-    await mutate(optimisticTodos, false);
-    
-    startTransition(async () => {
-      const result = await deleteTodoAction(id);
-      if (result.status === 'success') {
-        mutate();
-      }
-    });
-  };
+  const { handleToggle, handleDelete, isPending } = useTodoMutations({
+    todos,
+    mutate,
+  });
 
   const getPriorityBadge = (priority: number) => {
     switch (priority) {
